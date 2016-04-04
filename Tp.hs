@@ -19,11 +19,26 @@ tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repetic
 mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
+-- Ejercicio 1
+-- Implementar la función auxiliar split :: Eq a => a -> [a] -> [[a]] Dado un elemento separador y una lista,
+-- se deberá partir la lista en sublistas de acuerdo a la aparición del separador (sin incluirlo)
+ 
 split :: Eq a => a -> [a] -> [[a]]
-split = undefined
+split a xs = if length xs /= 0 then split' a xs else []
+
+split' :: Eq a => a -> [a] -> [[a]]
+split' needle = foldr (\x r -> if (x /= needle) then (x:head r):(tail r) else []:r) [[]]
+
+-- Ejercicio 2
+-- Implementar longitudPromedioPalabras :: Extractor , que dado un texto, calcula la longitud
+-- promedio de sus palabras. Consideraremos palabra a cualquier secuencia de caracteres separadas por espacios
 
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras = undefined
+longitudPromedioPalabras = \text -> mean (map genericLength (split ' ' text))
+
+-- Ejercicio 3
+-- Implementar la función auxiliar: cuentas :: Eq a => [a] -> [(Int, a)] que dada una lista,
+-- deberá devolver la cantidad de veces que aparece cada elemento en la lista. 
 
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas = undefined
