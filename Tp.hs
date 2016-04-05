@@ -85,8 +85,17 @@ frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
 -- -20.3, 1.0 y 10.5 respectivamente, deberı́a ser modificado para que al aplicarlo nuevamente a esos
 -- textos, los valores sean -1.0, 0.04 y 0.51.
 
+-- #TODO chequear la normalizacion. 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor = undefined
+normalizarExtractor ts extractor = \text -> snd (head (filter (\x -> (fst x) == text) (zip ts (normalizar datos)) ) )
+                                      where datos = (map extractor ts)
+
+normalizar :: [Feature] -> [Feature]
+normalizar datos = map (\x -> x / (norma datos) ) datos
+
+norma :: [Feature] -> Float
+norma datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
+
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = undefined
