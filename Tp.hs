@@ -106,7 +106,7 @@ extraerFeatures = \extractores texts -> map (\extractor -> map (\text -> normali
 
 
 distEuclideana :: Medida
-distEuclideana = undefined
+distEuclideana = \v1 v2 -> sqrt (foldr (+) 0  (map (\t -> ((fst t) - (snd t)) ^ 2) (zip v1 v2)))
 
 distCoseno :: Medida
 distCoseno = undefined
