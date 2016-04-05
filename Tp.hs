@@ -60,12 +60,23 @@ repeticionesPromedio :: Extractor
 repeticionesPromedio = \text -> let listPalabras = split ' ' text in
                                 (fromIntegral (genericLength listPalabras)) / fromIntegral (genericLength (cuentas listPalabras))
 
-
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
+
+-- Ejercicio 5
+-- Implementar frecuenciasTokens :: [Extractor] que devuelve un extractor por cada uno de
+-- los sı́mbolos definidos en la constante tokens :: [Char] 2 con la frecuencia relativa de estos con
+-- respecto a todos los caracteres presentes en el programa.
+
 frecuenciaTokens :: [Extractor]
-frecuenciaTokens = undefined
+frecuenciaTokens = [ \text -> (fun t (cuentas text)) / fromIntegral (length text) | t <- tokens ]
+
+fun :: Char -> [(Int,Char)] -> Feature
+fun = \t ls -> let k = filter (\x -> t == (snd x)) ls in
+                 if (length k == 0)
+                 then (fromIntegral 0)
+                 else (fromIntegral (fst (head k)))
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor = undefined
