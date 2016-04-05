@@ -70,13 +70,20 @@ tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789
 -- respecto a todos los caracteres presentes en el programa.
 
 frecuenciaTokens :: [Extractor]
-frecuenciaTokens = [ \text -> (fun t (cuentas text)) / fromIntegral (length text) | t <- tokens ]
+frecuenciaTokens = [ \text -> (frecuenciaT t (cuentas text)) / fromIntegral (length text) | t <- tokens ]
 
-fun :: Char -> [(Int,Char)] -> Feature
-fun = \t ls -> let k = filter (\x -> t == (snd x)) ls in
+frecuenciaT :: Char -> [(Int,Char)] -> Feature
+frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
                  if (length k == 0)
                  then (fromIntegral 0)
                  else (fromIntegral (fst (head k)))
+
+--Ejercicio 6
+-- normalizarExtractor :: [Texto] -> Extractor -> Extractor que dado un extractor, lo “modifica”
+-- de manera que el valor de los features se encuentre entre -1 y 1 para todos los datos con los que
+-- se dispone. Por ejemplo, suponiendo los textos t1, t2 y t3 y un extractor que devuelve los valores
+-- -20.3, 1.0 y 10.5 respectivamente, deberı́a ser modificado para que al aplicarlo nuevamente a esos
+-- textos, los valores sean -1.0, 0.04 y 0.51.
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor = undefined
