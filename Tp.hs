@@ -90,10 +90,13 @@ normalizarExtractor ts extractor = \text -> snd (head (filter (\x -> (fst x) == 
                                       where datos = (map extractor ts)
 
 normalizar :: [Feature] -> [Feature]
-normalizar datos = map (\x -> x / (norma datos) ) datos
+normalizar datos = map (\x -> x / (norma1 datos) ) datos
 
-norma :: [Feature] -> Float
-norma datos = maximum (map abs datos)
+norma1 :: [Feature] -> Float
+norma1 datos = maximum (map abs datos)
+
+norma2 :: [Feature] -> Float
+norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
 
 -- Ejercicio 7
 -- Implementar la función extraerFeatures :: [Extractor] -> [Texto] -> Datos que permita aplicar 
@@ -104,12 +107,11 @@ norma datos = maximum (map abs datos)
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = \extractores texts -> map (\extractor -> map (\text -> normalizarExtractor texts extractor text) texts ) extractores
 
-
 distEuclideana :: Medida
 distEuclideana = \v1 v2 -> sqrt (foldr (+) 0  (map (\t -> ((fst t) - (snd t)) ^ 2) (zip v1 v2)))
 
 distCoseno :: Medida
-distCoseno = undefined
+distCoseno = \v1 v2 -> (foldr (+) 0 ( map (\t ->((fst t) * (snd t))) (zip v1 v2) ) ) / ( (norma2 v1) * (norma2 v2) )
 
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
 knn = undefined
