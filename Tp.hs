@@ -78,14 +78,13 @@ frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
                  then (fromIntegral 0)
                  else (fromIntegral (fst (head k)))
 
---Ejercicio 6
+-- Ejercicio 6
 -- normalizarExtractor :: [Texto] -> Extractor -> Extractor que dado un extractor, lo “modifica”
 -- de manera que el valor de los features se encuentre entre -1 y 1 para todos los datos con los que
 -- se dispone. Por ejemplo, suponiendo los textos t1, t2 y t3 y un extractor que devuelve los valores
 -- -20.3, 1.0 y 10.5 respectivamente, deberı́a ser modificado para que al aplicarlo nuevamente a esos
 -- textos, los valores sean -1.0, 0.04 y 0.51.
 
--- #TODO chequear la normalizacion. 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor ts extractor = \text -> snd (head (filter (\x -> (fst x) == text) (zip ts (normalizar datos)) ) )
                                       where datos = (map extractor ts)
@@ -96,9 +95,15 @@ normalizar datos = map (\x -> x / (norma datos) ) datos
 norma :: [Feature] -> Float
 norma datos = maximum (map abs datos)
 
+-- Ejercicio 7
+-- Implementar la función extraerFeatures :: [Extractor] -> [Texto] -> Datos que permita aplicar 
+-- varios extractores a todos los programas que se reciban como parámetro y de esta manera lograr
+-- obtener una matriz de atributos. Para ello, primero deberán normalizar utilizando los mismos
+-- programas pasados como parámetros, todos los extractores antes de ser aplicados.
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
-extraerFeatures = undefined
+extraerFeatures = \extractores texts -> map (\extractor -> map (\text -> normalizarExtractor texts extractor text) texts ) extractores
+
 
 distEuclideana :: Medida
 distEuclideana = undefined
