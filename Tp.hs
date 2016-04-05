@@ -41,10 +41,25 @@ longitudPromedioPalabras = \text -> mean (map genericLength (split ' ' text))
 -- deberá devolver la cantidad de veces que aparece cada elemento en la lista. 
 
 cuentas :: Eq a => [a] -> [(Int, a)]
-cuentas = undefined
+cuentas = foldr (\x r ->
+                    if (elem x (snd (unzip r) ))
+                    then map (\y ->
+                          if (x == (snd y))
+                          then (1 + fst y, snd y)
+                          else y
+                        )
+                        r
+                    else (1,x):r
+                )
+                []
+
+-- Ejercicio 4
+-- Implementar repeticionPromedio :: Extractor que calcula la cantidad promedio de repeticiones por cada palabra
 
 repeticionesPromedio :: Extractor
-repeticionesPromedio = undefined
+repeticionesPromedio = \text -> let listPalabras = split ' ' text in
+                                (fromIntegral (genericLength listPalabras)) / fromIntegral (genericLength (cuentas listPalabras))
+
 
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
