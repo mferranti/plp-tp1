@@ -94,7 +94,7 @@ normalizar :: [Feature] -> [Feature]
 normalizar datos = map (\x -> x / (norma datos) ) datos
 
 norma :: [Feature] -> Float
-norma datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
+norma datos = maximum (map abs datos)
 
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
