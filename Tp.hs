@@ -113,8 +113,31 @@ distEuclideana = \v1 v2 -> sqrt (foldr (+) 0  (map (\t -> ((fst t) - (snd t)) ^ 
 distCoseno :: Medida
 distCoseno = \v1 v2 -> (foldr (+) 0 ( map (\t ->((fst t) * (snd t))) (zip v1 v2) ) ) / ( (norma2 v1) * (norma2 v2) )
 
+-- Ejercicio 9
+-- El algoritmo de clasificación que implementaremos es un modelo simple:
+-- K-Vecinos Más Cercanos (https://es.wikipedia.org/wiki/K-vecinos_m%C3%A1s_cercanos).
+-- La versión que utilizaremos del modelo funciona como se explica a continuación:
+--    - Ante una instancia que debe etiquetar, se calcula la distancia a todas las instancias de
+--      entrenamiento utilizando alguna medida de distancia definida previamente.
+--    - Una vez computadas las distancias, se seleccionan las K instancias más cercanos y se obtiene
+--      su etiqueta.
+--    - Ante esta lista de etiquetas, se calcula la moda estadı́stica.
+--    - Luego, se etiqueta a la nueva instancia con esa moda
+--
+-- Implementar un clasificador de K-Vecinos más cercanos. knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo .
+-- El primer parámetro corresponde al número de vecinos K, luego recibe datos de
+-- entrenamiento junto a sus etiquetas y una medida de distancia, devuelve un modelo de predicción.
+
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn = undefined
+knn k datos etiquetas medida = \instancia -> let distancias = map (medida instancia) datos in
+                                 moda (kmenores k (zip distancias etiquetas))
+
+moda :: [(Float,Etiqueta)] -> Etiqueta
+moda xs = snd (maximum (cuentas (snd (unzip xs))))
+
+kmenores :: Int -> [(Float,Etiqueta)] -> [(Float,Etiqueta)]
+kmenores k datos = take k (sort datos)
+
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy = undefined
