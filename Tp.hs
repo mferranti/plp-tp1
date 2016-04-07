@@ -107,8 +107,13 @@ norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = \extractores texts -> map (\extractor -> map (\text -> normalizarExtractor texts extractor text) texts ) extractores
 
+
+-- Ejercicio 8.1
+
 distEuclideana :: Medida
 distEuclideana = \v1 v2 -> sqrt (foldr (+) 0  (map (\t -> ((fst t) - (snd t)) ^ 2) (zip v1 v2)))
+
+-- Ejercicio 8.2
 
 distCoseno :: Medida
 distCoseno = \v1 v2 -> (foldr (+) 0 ( map (\t ->((fst t) * (snd t))) (zip v1 v2) ) ) / ( (norma2 v1) * (norma2 v2) )
@@ -175,8 +180,13 @@ dropLastElements :: [a] -> Int -> [a]
 dropLastElements ls n = take (length ls - (mod (length ls) n)) ls
 
 ---------------------------------------------------
+-- Ejercicio 11
+-- Implementar la función accuracy :: [Etiqueta] -> [Etiqueta] -> Float que devuelve la proporción de aciertos de
+-- nuestras predicciones sobre las verdaderas etiquetas,
+
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
-accuracy = undefined
+accuracy xs ys = let list = (zip xs ys) in
+                   (fromIntegral (foldr (\x r -> if ((fst x) == (snd x)) then (1+r) else r) 0 list)) / (fromIntegral (length list))
 
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation = undefined
