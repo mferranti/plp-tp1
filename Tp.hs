@@ -138,12 +138,45 @@ moda xs = snd (maximum (cuentas (snd (unzip xs))))
 kmenores :: Int -> [(Float,Etiqueta)] -> [(Float,Etiqueta)]
 kmenores k datos = take k (sort datos)
 
+-- Ejercicio 10
+-- Como primer paso, necesitamos separar nuestros datos en datos de entrenamiento y datos de
+-- validación, para ello utilizaremos la siguiente función:
+-- separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
+-- Esta función, toma una matriz de datos xs y sus respectivas etiquetas y, luego dos números n y p,
+-- y devuelve el resultado de partir la matriz xs en n particiones dejando la partición número p
+-- para validación y el resto para entrenamiento. Es precondición que el número de partición estará
+-- entre 1 y n. Para este ejercicio, se debe mantener el orden original en estas particiones.
 
+-- TODO Hacer mas legibles estas funciones. Es inentendible
+separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
+separarDatos datos etiquetas n p = let particiones = (particionar (dropLastElements (zip datos etiquetas) n ) n) in
+                                       (xTrain particiones (p-1) , yTrain particiones (p-1), xVal particiones (p-1), yVal particiones (p-1))
+
+particionar :: [(Instancia,Etiqueta)] -> Int -> [[(Instancia,Etiqueta)]]
+particionar ls n = let tamano = (div (length ls) n ) in
+                        foldr (\x r -> if (length (head r) == tamano) then [[x]] ++ r  else (([x]++(head r)):(tail r)) ) [[]] ls
+
+xTrain :: [[(Instancia,Etiqueta)]] -> Int -> Datos
+xTrain ls p  = fst (unzip (concat (eliminarElemento ls p)))
+
+xVal :: [[(Instancia,Etiqueta)]] -> Int -> [Etiqueta]
+xVal ls p = snd (unzip (concat (eliminarElemento ls p)))
+
+eliminarElemento :: [a] -> Int -> [a]
+eliminarElemento ls i = (take i ls) ++ (drop (i+1) ls)
+
+yTrain :: [[(Instancia,Etiqueta)]] -> Int -> Datos
+yTrain ls p = fst (unzip (ls !! p))
+
+yVal :: [[(Instancia,Etiqueta)]] -> Int -> [Etiqueta]
+yVal ls p = snd (unzip (ls !! p))
+
+dropLastElements :: [a] -> Int -> [a]
+dropLastElements ls n = take (length ls - (mod (length ls) n)) ls
+
+---------------------------------------------------
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy = undefined
-
-separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos = undefined
 
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation = undefined
