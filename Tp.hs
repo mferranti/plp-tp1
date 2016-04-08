@@ -188,5 +188,31 @@ accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy xs ys = let list = (zip xs ys) in
                    (fromIntegral (foldr (\x r -> if ((fst x) == (snd x)) then (1+r) else r) 0 list)) / (fromIntegral (length list))
 
+-- Ejercicio 12
+
+-- nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float que calculara el accuracy promedio
+-- de nuestro modelo en datos no etiquetados. Para ello, utilizaremos una version de n-fold
+-- cross-validation en donde la matriz de datos (y sus respectivas etiquetas) son particionadas en N
+-- particiones (siendo N el primer parametro de nuestra funcion).
+-- Una vez particionados los datos, seleccionaremos N − 1 particiones para entrenamiento y la
+-- restante para validar nuestro modelo. Para este ejercicio el modelo sera: vecinos mas cercanos con
+-- K = 15 y la distancia Euclideana como medida.
+-- Repetimos este proceso variando cual es la particion seleccionada para validacion entre las N
+-- posibles y de esta manera obtenemos N resultados intermedios (accuracy para cada conjunto de
+-- validacion). El resultado sera el de promediar estos N resultados intermedios.
+
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
-nFoldCrossValidation = undefined
+nFoldCrossValidation n datos etiquetas = (foldr (+) 0 (accuracyList n datos etiquetas)) / (fromIntegral n)
+
+accuracyList :: Int -> Datos -> [Etiqueta] -> [Float]
+accuracyList n datos etiquetas = [ accuracyP datos etiquetas n p | p <-[1..(n-1)] ]
+
+accuracyP :: Datos -> [Etiqueta] -> Int -> Int -> Float
+accuracyP datos etiquetas n p = let (x_train, y_train, x_val, y_val ) = (separarDatos datos etiquetas n p) in 
+                                  accuracy [(knn 15 x_train x_val distEuclideana y) | y <- y_train] y_val
+
+-- TODO CHECKLIST
+-- hacer Tests
+-- mejorar ejercicio 10,
+-- comentar que hace cada funcion
+

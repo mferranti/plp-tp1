@@ -2,7 +2,7 @@ import System.IO
 import System.Directory
 import Data.List
 -- import Tp
-import Solucion
+import Tp
 import System.Random
 
 shuffle :: [a] -> IO [a]
