@@ -71,7 +71,8 @@ cuentas' xs = foldr (\x r ->
 -- Implementar repeticionPromedio :: Extractor que calcula la cantidad promedio de repeticiones por cada palabra
 
 repeticionesPromedio :: Extractor
-repeticionesPromedio = \text -> let listPalabras = split ' ' text in
+repeticionesPromedio = \text -> if (length text == 0) then 0 else
+                                let listPalabras = split ' ' text in
                                 (fromIntegral (genericLength listPalabras)) / fromIntegral (genericLength (cuentas listPalabras))
 
 tokens :: [Char]
