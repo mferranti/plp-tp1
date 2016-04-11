@@ -120,7 +120,7 @@ norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures extractores texts = let extractoresNormalizados = [normalizarExtractor texts ex | ex <- extractores] in
-                                     map (\extractor -> map (\text -> extractor text) texts ) extractoresNormalizados
+                                      map (\text -> map (\extractor -> extractor text) extractoresNormalizados ) texts
 
 -- Ejercicio 8.1
 
