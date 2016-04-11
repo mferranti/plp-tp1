@@ -24,24 +24,37 @@ mean xs = realToFrac (sum xs) / genericLength xs
 -- se deberá partir la lista en sublistas de acuerdo a la aparición del separador (sin incluirlo)
  
 split :: Eq a => a -> [a] -> [[a]]
-split a xs = if length xs /= 0 then split' a xs else []
+split a xs = if length xs /= 0 then eliminarVacios $ split' a xs else []
 
 split' :: Eq a => a -> [a] -> [[a]]
-split' needle = foldr (\x r -> if (x /= needle) then (x:head r):(tail r) else []:r) [[]]
+split' needle = foldr (\x r -> 
+                          if (x /= needle) 
+                          then (x:head r):(tail r) 
+                          else []:r
+                       ) [[]]
+
+eliminarVacios :: [[a]] -> [[a]] 
+eliminarVacios = filter (\x -> not (null x)) 
 
 -- Ejercicio 2
 -- Implementar longitudPromedioPalabras :: Extractor , que dado un texto, calcula la longitud
 -- promedio de sus palabras. Consideraremos palabra a cualquier secuencia de caracteres separadas por espacios
 
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras = \text -> mean (map genericLength (split ' ' text))
+longitudPromedioPalabras = \text -> let longitudes =  map genericLength (split ' ' text) in 
+                              if null longitudes
+                              then 0
+                              else mean longitudes
 
 -- Ejercicio 3
 -- Implementar la función auxiliar: cuentas :: Eq a => [a] -> [(Int, a)] que dada una lista,
 -- deberá devolver la cantidad de veces que aparece cada elemento en la lista. 
 
 cuentas :: Eq a => [a] -> [(Int, a)]
-cuentas = foldr (\x r ->
+cuentas xs = reverse $ cuentas' xs -- se toma reverse para que quede en el orden original de aparicion
+
+cuentas' :: Eq a => [a] -> [(Int,a)]
+cuentas' xs = foldr (\x r ->
                     if (elem x (snd (unzip r) ))
                     then map (\y ->
                           if (x == (snd y))
@@ -52,6 +65,7 @@ cuentas = foldr (\x r ->
                     else (1,x):r
                 )
                 []
+                (reverse xs)
 
 -- Ejercicio 4
 -- Implementar repeticionPromedio :: Extractor que calcula la cantidad promedio de repeticiones por cada palabra
@@ -105,8 +119,8 @@ norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
 -- programas pasados como parámetros, todos los extractores antes de ser aplicados.
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
-extraerFeatures = \extractores texts -> map (\extractor -> map (\text -> normalizarExtractor texts extractor text) texts ) extractores
-
+extraerFeatures extractores texts = let extractoresNormalizados = [normalizarExtractor texts ex | ex <- extractores] in
+                                     map (\extractor -> map (\text -> extractor text) texts ) extractoresNormalizados
 
 -- Ejercicio 8.1
 
@@ -205,7 +219,7 @@ nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation n datos etiquetas = (foldr (+) 0 (accuracyList n datos etiquetas)) / (fromIntegral n)
 
 accuracyList :: Int -> Datos -> [Etiqueta] -> [Float]
-accuracyList n datos etiquetas = [ accuracyP datos etiquetas n p | p <-[1..(n-1)] ]
+accuracyList n datos etiquetas = [ accuracyP datos etiquetas n p | p <-[1..n] ]
 
 accuracyP :: Datos -> [Etiqueta] -> Int -> Int -> Float
 accuracyP datos etiquetas n p = let (x_train, y_train, x_val, y_val ) = (separarDatos datos etiquetas n p) in 
