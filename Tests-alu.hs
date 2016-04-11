@@ -48,10 +48,3 @@ testsfrecuenciaTokens = test [
   (head frecuenciaTokens) "___" ~?= 1,
   (head frecuenciaTokens) "abcde fghi" ~?= 0
   ] 
-
-testsfrecuenciaTokens = test [
-  (frecuenciaTokens !! 25) "@a@a" ~?= 0.5,
-  (frecuenciaTokens !! 26) "?abcdefgh?" ~?= 0.2,
-  (head frecuenciaTokens) "___" ~?= 1,
-  (head frecuenciaTokens) "abcde fghi" ~?= 0
-  ] 
