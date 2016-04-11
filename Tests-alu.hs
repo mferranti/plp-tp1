@@ -11,8 +11,8 @@ main = runTestTT allTests
 allTests = test [
  	"split" ~: testsSplit,
  	"cuentas" ~: testsCuentas,
-  "longitudPromedioPalabras" ~: testsLongitudPromedioPalabras,
-  "repeticionesPromedio" ~: testsRepeticionesPromedio
+  	"longitudPromedioPalabras" ~: testsLongitudPromedioPalabras,
+  	"repeticionesPromedio" ~: testsRepeticionesPromedio
   ]
 
 testsSplit = test [
@@ -21,7 +21,10 @@ testsSplit = test [
   	]
 
 testsCuentas = test [
-	cuentas ["x","x","y","x","z"] ~?= [(3,"x"), (1,"y"), (1,"z")]
+	cuentas ["x","x","y","x","z"] ~?= [(3,"x"), (1,"y"), (1,"z")],
+--san
+	cuentas["jose", "pablo","jose","armando","jose"] ~?= [(3,"jose"), (1,"pablo"), (1,"armando")],
+	cuentas["1","22","22","333","333","333"] ~?= [(1,"1"), (2,"22"), (3,"333")]
 	]
 
 testsLongitudPromedioPalabras = test [
@@ -39,4 +42,9 @@ testsRepeticionesPromedio = test [
   repeticionesPromedio "a a a " ~?= 3.0
   ] 
 
-
+testsfrecuenciaTokens = test [
+  (frecuenciaTokens !! 25) "@a@a" ~?= 0.5,
+  (frecuenciaTokens !! 26) "?abcdefgh?" ~?= 0.2,
+  (head frecuenciaTokens) "___" ~?= 1,
+  (head frecuenciaTokens) "abcde fghi" ~?= 0
+  ] 
