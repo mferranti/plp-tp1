@@ -20,35 +20,44 @@ mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
 -- Ejercicio 1
--- Implementar la función auxiliar split :: Eq a => a -> [a] -> [[a]] Dado un elemento separador y una lista,
--- se deberá partir la lista en sublistas de acuerdo a la aparición del separador (sin incluirlo)
- 
+-- 
+-- La funcion auxiliar split' agrega elementos a la primer lista del resultado recursivo hasta que se encuentre con el separador.
+-- Cuando encuentra el elemento separador se agrega una nueva lista vacia como cabeza y se van agregando los nuevos elementos en
+-- esta misma.
+-- Luego al resultado de split' se le aplica la funcion eliminarVacios, debido a que en el caso de que hayan varios separadores
+-- split' genera listas vacias que deberan ser removidas.
+
+
 split :: Eq a => a -> [a] -> [[a]]
-split a xs = if length xs /= 0 then eliminarVacios $ split' a xs else []
+split a xs = eliminarVacios $ split' a xs
 
 split' :: Eq a => a -> [a] -> [[a]]
-split' needle = foldr (\x r -> 
-                          if (x /= needle) 
-                          then (x:head r):(tail r) 
+split' separador = foldr (\x r ->
+                          if (x /= separador)
+                          then (x:head r):(tail r)
                           else []:r
                        ) [[]]
 
-eliminarVacios :: [[a]] -> [[a]] 
-eliminarVacios = filter (\x -> not (null x)) 
+eliminarVacios :: [[a]] -> [[a]]
+eliminarVacios = filter (\x -> not (null x))
 
 -- Ejercicio 2
--- Implementar longitudPromedioPalabras :: Extractor , que dado un texto, calcula la longitud
--- promedio de sus palabras. Consideraremos palabra a cualquier secuencia de caracteres separadas por espacios
+--
+-- Se obtiene una lista de longitudes de todas las palabras. Si el texto no tiene palabras se devuelve 0 y sino el promedio.
 
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras = \text -> let longitudes =  map genericLength (split ' ' text) in 
+longitudPromedioPalabras = \text -> let longitudes =  map genericLength (split ' ' text) in
                               if null longitudes
                               then 0
                               else mean longitudes
 
 -- Ejercicio 3
--- Implementar la función auxiliar: cuentas :: Eq a => [a] -> [(Int, a)] que dada una lista,
--- deberá devolver la cantidad de veces que aparece cada elemento en la lista. 
+--
+-- La funcion cuentas' hace una recursion donde en cada paso recursivo chequea si el elemento x ya se encuentra en r
+-- si no se encuentra lo agrega como primera aparicion y en caso contrario devuelve la misma lista pero sumando 1
+-- a la cantidad del elemento en cuestion.
+-- Se agrego la aplicación de reverse para que el orden en el resultado sea el mismo que el orden de aparicion de
+-- los elementos.
 
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas xs = reverse $ cuentas' xs -- se toma reverse para que quede en el orden original de aparicion
@@ -68,24 +77,27 @@ cuentas' xs = foldr (\x r ->
                 (reverse xs)
 
 -- Ejercicio 4
--- Implementar repeticionPromedio :: Extractor que calcula la cantidad promedio de repeticiones por cada palabra
+--
+-- En esta funcion devuelve el resultado de dividir la cantidad de palabras por la cantidad de palabras distintas.
 
 repeticionesPromedio :: Extractor
-repeticionesPromedio = \text -> if (length text == 0) then 0 else
-                                let listPalabras = split ' ' text in
-                                (fromIntegral (genericLength listPalabras)) / fromIntegral (genericLength (cuentas listPalabras))
+repeticionesPromedio = \text -> let listPalabras = split ' ' text in
+                                  if (null listPalabras)
+                                  then 0
+                                  else (fromIntegral $ genericLength listPalabras) / (fromIntegral $ genericLength $ cuentas listPalabras)
 
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
 
 -- Ejercicio 5
--- Implementar frecuenciasTokens :: [Extractor] que devuelve un extractor por cada uno de
--- los sı́mbolos definidos en la constante tokens :: [Char] 2 con la frecuencia relativa de estos con
--- respecto a todos los caracteres presentes en el programa.
+
+-- La funcion frecuenciaTokens arma una lista por comprension de funciones que devuelven la division entre
+-- la cantidad de apariciones del token t dividido la cantidad total de caracteres.
+-- En este caso se utiliza la funcion cuentas para obtener la cantidad de apariciones por caracteres.
 
 frecuenciaTokens :: [Extractor]
-frecuenciaTokens = [ \text -> (frecuenciaT t (cuentas text)) / fromIntegral (length text) | t <- tokens ]
+frecuenciaTokens = [ \text -> (frecuenciaT t $ cuentas text) / (fromIntegral $ length text) | t <- tokens ]
 
 frecuenciaT :: Char -> [(Int,Char)] -> Feature
 frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
@@ -94,21 +106,22 @@ frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
                  else (fromIntegral (fst (head k)))
 
 -- Ejercicio 6
--- normalizarExtractor :: [Texto] -> Extractor -> Extractor que dado un extractor, lo “modifica”
--- de manera que el valor de los features se encuentre entre -1 y 1 para todos los datos con los que
--- se dispone. Por ejemplo, suponiendo los textos t1, t2 y t3 y un extractor que devuelve los valores
--- -20.3, 1.0 y 10.5 respectivamente, deberı́a ser modificado para que al aplicarlo nuevamente a esos
--- textos, los valores sean -1.0, 0.04 y 0.51.
+
+-- En esta funcion lo primero que se hace es normalizar los datos que se obtienen de la aplicacion del extractor
+-- a todos los textos. Para normalizar se utiliza la norma infinito (Maximo valor absoluto).
+-- Luego se devuelve una funcion que toma un texto (debe estar normalizado) y devuelve el resultado normalizado de
+-- la aplicacion del extractor seleccionado.
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor ts extractor = \text -> snd (head (filter (\x -> (fst x) == text) (zip ts (normalizar datos)) ) )
-                                      where datos = (map extractor ts)
+normalizarExtractor ts extractor = \text -> let datosNormalizados = zip ts (normalizar datos) where datos = (map extractor ts) in
+                                              snd $ head $ filter (\x -> (fst x) == text) datosNormalizados
+
 
 normalizar :: [Feature] -> [Feature]
-normalizar datos = map (\x -> x / (norma1 datos) ) datos
+normalizar datos = map (\x -> x / (normaInfinito datos) ) datos
 
-norma1 :: [Feature] -> Float
-norma1 datos = maximum (map abs datos)
+normaInfinito :: [Feature] -> Float
+normaInfinito datos = maximum $ map abs datos
 
 norma2 :: [Feature] -> Float
 norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
