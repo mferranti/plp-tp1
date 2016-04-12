@@ -97,7 +97,7 @@ tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789
 -- En este caso se utiliza la funcion cuentas para obtener la cantidad de apariciones por caracteres.
 
 frecuenciaTokens :: [Extractor]
-frecuenciaTokens = [ \text -> (frecuenciaT t $ cuentas text) / (fromIntegral $ length text) | t <- tokens ]
+frecuenciaTokens = [ \text -> (frecuenciaT t (cuentas text)) / fromIntegral (length text) | t <- tokens ]
 
 frecuenciaT :: Char -> [(Int,Char)] -> Feature
 frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
@@ -113,9 +113,9 @@ frecuenciaT = \t ls -> let k = filter (\x -> t == (snd x)) ls in
 -- la aplicacion del extractor seleccionado.
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor ts extractor = \text -> let datosNormalizados = zip ts (normalizar datos) where datos = (map extractor ts) in
-                                              snd $ head $ filter (\x -> (fst x) == text) datosNormalizados
-
+normalizarExtractor ts extractor = \text -> let datosNormalizados = zip ts (normalizar datos) in
+                                              snd ( head ( filter (\x -> (fst x) == text) datosNormalizados))
+                                              where datos = (map extractor ts)
 
 normalizar :: [Feature] -> [Feature]
 normalizar datos = map (\x -> x / (normaInfinito datos) ) datos
@@ -147,47 +147,58 @@ distCoseno :: Medida
 distCoseno = \v1 v2 -> (foldr (+) 0 $ map (\t -> fst t * snd t) (zip v1 v2)) / ( norma2 v1 * norma2 v2 )
 
 -- Ejercicio 9
--- El algoritmo de clasificación que implementaremos es un modelo simple:
--- K-Vecinos Más Cercanos (https://es.wikipedia.org/wiki/K-vecinos_m%C3%A1s_cercanos).
--- La versión que utilizaremos del modelo funciona como se explica a continuación:
---    - Ante una instancia que debe etiquetar, se calcula la distancia a todas las instancias de
---      entrenamiento utilizando alguna medida de distancia definida previamente.
---    - Una vez computadas las distancias, se seleccionan las K instancias más cercanos y se obtiene
---      su etiqueta.
---    - Ante esta lista de etiquetas, se calcula la moda estadı́stica.
---    - Luego, se etiqueta a la nueva instancia con esa moda
 --
--- Implementar un clasificador de K-Vecinos más cercanos. knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo .
--- El primer parámetro corresponde al número de vecinos K, luego recibe datos de
--- entrenamiento junto a sus etiquetas y una medida de distancia, devuelve un modelo de predicción.
+-- Primero se calcula el vector de distancias de la instancia con respecto a los datos. Este vector mantiene el orden
+-- con respecto a la lista de etiquetas.
+-- Luego se utiliza la funcion zip para juntar el vector de distancias con la lista de etiquetas para poder ordenar y obtener
+-- los k menores sin perder la referencia de las etiquetas.
+-- En kmenores se hace uso de la funcion sort para ordenar la lista por el primer elemento de las tuplas obteniendo asi los k-menores
+-- elementos en las primeras k posiciones.
+--
+-- Luego se busca la etiqueta mas comun entre las k etiquetas. En este caso se hace uso de la funcion cuentas que obtendra una lista
+-- de 2 elementos: uno sera una tupla con la cantidad de etiquetas I y  el otro una tupla con cantidad de etiquetas F, finalmente se obtiene
+-- la mayor de ellas.
 
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn k datos etiquetas medida = \instancia -> let distancias = map (medida instancia) datos in
+knn k datos etiquetas medir = \instancia -> let distancias = map (medir instancia) datos in
                                  moda (kmenores k (zip distancias etiquetas))
 
 moda :: [(Float,Etiqueta)] -> Etiqueta
-moda xs = snd (maximum (cuentas (snd (unzip xs))))
+moda xs = snd $ maximum $ cuentas $ snd $ unzip xs
 
 kmenores :: Int -> [(Float,Etiqueta)] -> [(Float,Etiqueta)]
 kmenores k datos = take k (sort datos)
 
--- Ejercicio 10
--- Como primer paso, necesitamos separar nuestros datos en datos de entrenamiento y datos de
--- validación, para ello utilizaremos la siguiente función:
--- separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
--- Esta función, toma una matriz de datos xs y sus respectivas etiquetas y, luego dos números n y p,
--- y devuelve el resultado de partir la matriz xs en n particiones dejando la partición número p
--- para validación y el resto para entrenamiento. Es precondición que el número de partición estará
--- entre 1 y n. Para este ejercicio, se debe mantener el orden original en estas particiones.
 
--- TODO Hacer mas legibles estas funciones. Es inentendible
+-- Ejercicio 10
+--
+-- La funcion separarDatos obtiene una lista de N particiones y la guarda en la variable particiones.
+-- Luego hace uso de las funciones xTrain, yTrain, xVal y yVal para obtener las particiones indicadas por P.
+-- En vez de pasar P como argumento se pasa (P-1) porque luego se hace uso de la funcion (!!) y esta considera
+-- a la posicion 0 como el primer elemento de la lista
+
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos datos etiquetas n p = let particiones = (particionar (dropLastElements (zip datos etiquetas) n ) n) in
                                        (xTrain particiones (p-1) , yTrain particiones (p-1), xVal particiones (p-1), yVal particiones (p-1))
 
+-- Esta funcion obtiene un listado con una cantidad de elementos multiplo de N y devuelve los datos en el mismo orden
+-- separados en listas de n elementos.
+-- En cada llamado recursivo se chequea si la lista tiene tamaño N, si no lo tiene agrega un Dato mas a esa lista.
+-- Si ya alcanzo el tamaño que debe tener esa particion (N) entonces comienza a crear una nueva lista que se pone como cabeza de la
+-- la solucion parcial. Y luego sigue agregando Datos en esta lista hasta que llegue al tamaño N.
+--
 particionar :: [(Instancia,Etiqueta)] -> Int -> [[(Instancia,Etiqueta)]]
 particionar ls n = let tamano = (div (length ls) n ) in
-                        foldr (\x r -> if (length (head r) == tamano) then [[x]] ++ r  else (([x]++(head r)):(tail r)) ) [[]] ls
+                        foldr (\x r -> if (length (head r) == tamano)
+                                       then [[x]] ++ r
+                                       else (([x]++(head r)):(tail r))
+                        )
+                        [[]]
+                        ls
+
+-- Las funciones xTrai y xVal se encargan de obtener los datos y las etiquetas respectivamente
+-- removiendo a la particion P con la funcion eliminarElemento.
+
 
 xTrain :: [[(Instancia,Etiqueta)]] -> Int -> Datos
 xTrain ls p  = fst (unzip (concat (eliminarElemento ls p)))
@@ -195,8 +206,15 @@ xTrain ls p  = fst (unzip (concat (eliminarElemento ls p)))
 xVal :: [[(Instancia,Etiqueta)]] -> Int -> [Etiqueta]
 xVal ls p = snd (unzip (concat (eliminarElemento ls p)))
 
+
+-- eliminarElemento elimina el elemento en la posicion i de la lista.
+-- Concatena la lista de los elementos anteriores con la lista de los elementos posteriores a dicho indice.
+
 eliminarElemento :: [a] -> Int -> [a]
 eliminarElemento ls i = (take i ls) ++ (drop (i+1) ls)
+
+-- Las funciones yTrain y yVal se encargan de obtener los datos y las etiquetas respectivamente
+-- de la particion P (P=0 es la primera particion).
 
 yTrain :: [[(Instancia,Etiqueta)]] -> Int -> Datos
 yTrain ls p = fst (unzip (ls !! p))
@@ -204,13 +222,18 @@ yTrain ls p = fst (unzip (ls !! p))
 yVal :: [[(Instancia,Etiqueta)]] -> Int -> [Etiqueta]
 yVal ls p = snd (unzip (ls !! p))
 
+
+-- dropLastElements elimina de la lista pasada como argumento los ultimos elementos para que la lista sea particionable
+-- en N partes iguales.
+
 dropLastElements :: [a] -> Int -> [a]
 dropLastElements ls n = take (length ls - (mod (length ls) n)) ls
 
----------------------------------------------------
+
 -- Ejercicio 11
--- Implementar la función accuracy :: [Etiqueta] -> [Etiqueta] -> Float que devuelve la proporción de aciertos de
--- nuestras predicciones sobre las verdaderas etiquetas,
+--
+-- Se arma una lista con los pares de etiquetas. Luego se recorre la lista con foldr y se suman todos los matchs.
+-- finalmente se divide por la cantidad de etiquetas para obtener la proporcion de aciertos.
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy xs ys = let list = (zip xs ys) in
@@ -229,18 +252,23 @@ accuracy xs ys = let list = (zip xs ys) in
 -- posibles y de esta manera obtenemos N resultados intermedios (accuracy para cada conjunto de
 -- validacion). El resultado sera el de promediar estos N resultados intermedios.
 
+-- La funcion nFoldCrossValidation calcula el promedio de todos los accuracy obtenidos para el modelo
+-- con el conjunto de datos indicado
+
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation n datos etiquetas = (foldr (+) 0 (accuracyList n datos etiquetas)) / (fromIntegral n)
 
+
+-- accuracyList  se encarga de construir una lista de N elementos donde cada elemento
+-- es un accuracy de validacion el modelo utilizando una particion de los datos
+
 accuracyList :: Int -> Datos -> [Etiqueta] -> [Float]
 accuracyList n datos etiquetas = [ accuracyP datos etiquetas n p | p <-[1..n] ]
+
+-- accuracyP es la funcion encargada de obtener la accuracy del modelo utilizando la particion P
 
 accuracyP :: Datos -> [Etiqueta] -> Int -> Int -> Float
 accuracyP datos etiquetas n p = let (x_train, y_train, x_val, y_val ) = (separarDatos datos etiquetas n p) in 
                                   accuracy [(knn 15 x_train x_val distEuclideana y) | y <- y_train] y_val
 
--- TODO CHECKLIST
--- hacer Tests
--- mejorar ejercicio 10,
--- comentar que hace cada funcion
 
