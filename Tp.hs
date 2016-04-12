@@ -19,6 +19,9 @@ tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repetic
 mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
+-- En el archivo Tests-alu.hs se encuentran los ejemplos que exhiben el funcionamiento de las funciones
+
+
 -- Ejercicio 1
 -- 
 -- La funcion auxiliar split' agrega elementos a la primer lista del resultado recursivo hasta que se encuentre con el separador.

@@ -11,18 +11,26 @@ main = runTestTT allTests
 allTests = test [
   "split" ~: testsSplit,
   "cuentas" ~: testsCuentas,
-    "longitudPromedioPalabras" ~: testsLongitudPromedioPalabras,
-    "repeticionesPromedio" ~: testsRepeticionesPromedio
+  "longitudPromedioPalabras" ~: testsLongitudPromedioPalabras,
+  "repeticionesPromedio" ~: testsRepeticionesPromedio,
+  "frecuenciaTokens" ~: testsFrecuenciaTokens,
+  "normalizarExtractor" ~: testsNormalizarExtractor,
+  "extraerFeatures" ~: testsExtraerFeatures,
+  "distEuclideana" ~: testsDistEuclideana,
+  "distCoseno" ~: testsDistCoseno,
+  "knn" ~: testsKnn,
+  "separarDatos" ~: testsSepararDatos,
+  "accuracy" ~: testsAccuracy
   ]
 
 testsSplit = test [
   split ',' ",PLP," ~?= ["PLP"],
-  split ',' " ,PLP, " ~?= [" ","PLP"," "]
+  split ',' " ,PLP, " ~?= [" ","PLP"," "],
+  split ',' "hola PLP, bienvenidos!" ~?= ["hola PLP"," bienvenidos!"]
     ]
 
 testsCuentas = test [
   cuentas ["x","x","y","x","z"] ~?= [(3,"x"), (1,"y"), (1,"z")],
---san
   cuentas["jose", "pablo","jose","armando","jose"] ~?= [(3,"jose"), (1,"pablo"), (1,"armando")],
   cuentas["1","22","22","333","333","333"] ~?= [(1,"1"), (2,"22"), (3,"333")]
   ]
@@ -42,43 +50,51 @@ testsRepeticionesPromedio = test [
   repeticionesPromedio "a a a " ~?= 3.0
   ] 
 
-testsfrecuenciaTokens = test [
+testsFrecuenciaTokens = test [
   (frecuenciaTokens !! 25) "@a@a" ~?= 0.5,
   (frecuenciaTokens !! 26) "?abcdefgh?" ~?= 0.2,
   (head frecuenciaTokens) "___" ~?= 1,
-  (head frecuenciaTokens) "abcde fghi" ~?= 0
+  (head frecuenciaTokens) "abcde fghi" ~?= 0,
+  (head frecuenciaTokens) "use_snake_case !" ~?= 0.125
   ] 
 
-testsnormalizarExtractor = test [
+testsNormalizarExtractor = test [
     (normalizarExtractor ["hola", "pedrito", "0123456789"] (\text -> realToFrac(length text))) "hola" ~?= 4/10,
     (normalizarExtractor ["hola", "pedrito", "0123456789"] (\text -> realToFrac(length text))) "pedrito" ~?= 7/10,
     (normalizarExtractor ["hola", "pedrito", "0123456789"] (\text -> realToFrac(length text))) "0123456789" ~?= 1
   ] 
 
-testsdistEuclideana = test [
-    distEuclideana [1,1] [1,1] ~?= 0,
-    distEuclideana [6,6] [3,3] ~?= sqrt 2
-  ] 
-
-testsdistCoseno = test [
-    distCoseno [1,1] [1,1] ~?= 1.0,
-    distCoseno [6,6] [3,3] ~?= 1.0
+testsExtraerFeatures = test [
+    extraerFeatures [longitudPromedioPalabras, repeticionesPromedio] ["b=a", "a = 2; a = 4", "C:/DOS C:/DOS/RUN RUN/DOS/RUN"] ~?= [[0.33333334,0.6666667],[0.12962963,1.0],[1.0,0.6666667]]
   ]
 
-testsknn = test [
+testsDistEuclideana = test [
+    distEuclideana [1,1] [1,1] ~?= 0,
+    distEuclideana [4,4] [3,3] ~?= sqrt 2,
+    distEuclideana [1.0,0.75,0.8125] [0.75,1.0,0.5] ~?= 0.47186464
+  ] 
+
+testsDistCoseno = test [
+    distCoseno [1,1] [1,0] ~?= 0.70710677,
+    distCoseno [20,20] [20,0] ~?= 0.70710677,
+    distCoseno [0,3,4] [0,-3,-4] ~?= -1.0
+  ]
+
+testsKnn = test [
     (knn 1 [[0,0],[2,2]] ["a","b"] distEuclideana) [1,1] ~?= "a",
     (knn 1 [[0,0],[0,0]] ["a","b"] distEuclideana) [1,1] ~?= "a",
     (knn 1 [[-3,-3],[0,0]] ["a","b"] distEuclideana) [0,0] ~?= "b",
+    (knn 1 [[0,1],[0,2],[1,0]] ["a","a","b"] distEuclideana) [2,2] ~?= "a",
+    (knn 1 [[0,1],[0,2],[1,0]] ["a","a","b"] distEuclideana) [3,1] ~?= "b",
     (knn 2 [[0,1],[0,2],[2,1],[1,1],[2,3]] ["i","i","f","f","i"] distEuclideana) [1,1] ~?= "f"
   ]
 
-testssepararDatos = test [
-    separarDatos [[0,0],[1,1]] ["1","2"] 1 0 ~?= ([],[[0.0,0.0],[1.0,1.0]],[],["1","2"]),
+testsSepararDatos = test [
     separarDatos [[0,0],[1,1]] ["1","2"] 2 1 ~?= ([[1.0,1.0]],[[0.0,0.0]],["2"],["1"]),
     separarDatos [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7]] ["1","2","3","4","5","6","7"] 3 2 ~?= ([[1.0,1.0],[2.0,2.0],[5.0,5.0],[6.0,6.0]],[[3.0,3.0],[4.0,4.0]],["1","2","5","6"],["3","4"])
   ]
 
-testsaccuracy = test [
+testsAccuracy = test [
    accuracy ["f"] ["i", "f"] ~?= 0,
    accuracy ["f"] ["f"] ~?= 1,
    accuracy ["f","i","i"] ["f","f","f"] ~?= 1/3,
