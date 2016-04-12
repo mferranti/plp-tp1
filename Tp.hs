@@ -126,25 +126,25 @@ normaInfinito datos = maximum $ map abs datos
 norma2 :: [Feature] -> Float
 norma2 datos = sqrt (foldr (+) 0 ( map (flip (^) 2) datos))
 
+
 -- Ejercicio 7
--- Implementar la función extraerFeatures :: [Extractor] -> [Texto] -> Datos que permita aplicar 
--- varios extractores a todos los programas que se reciban como parámetro y de esta manera lograr
--- obtener una matriz de atributos. Para ello, primero deberán normalizar utilizando los mismos
--- programas pasados como parámetros, todos los extractores antes de ser aplicados.
+
+-- Primero se obtiene una lista con extractores normalizados y se guarda en una variable para evitar repetir calculos innecesarios.
+-- Luego se devuelve una lista que tiene los resultados de aplicar todos los extractores a cada texto.
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures extractores texts = let extractoresNormalizados = [normalizarExtractor texts ex | ex <- extractores] in
-                                      map (\text -> map (\extractor -> extractor text) extractoresNormalizados ) texts
+                                      map (\text -> [extractor text | extractor <- extractoresNormalizados] ) texts
 
--- Ejercicio 8.1
+-- Ejercicio 8
+
+-- Aplicacion de las formulas matematicas haciendo uso de la funcion zip para tener mas comoda la cuenta dentro de la funcion map.
 
 distEuclideana :: Medida
-distEuclideana = \v1 v2 -> sqrt (foldr (+) 0  (map (\t -> ((fst t) - (snd t)) ^ 2) (zip v1 v2)))
-
--- Ejercicio 8.2
+distEuclideana = \v1 v2 -> sqrt $ foldr (+) 0 $ map (\t -> (fst t - snd t) ^ 2) (zip v1 v2)
 
 distCoseno :: Medida
-distCoseno = \v1 v2 -> (foldr (+) 0 ( map (\t ->((fst t) * (snd t))) (zip v1 v2) ) ) / ( (norma2 v1) * (norma2 v2) )
+distCoseno = \v1 v2 -> (foldr (+) 0 $ map (\t -> fst t * snd t) (zip v1 v2)) / ( norma2 v1 * norma2 v2 )
 
 -- Ejercicio 9
 -- El algoritmo de clasificación que implementaremos es un modelo simple:
